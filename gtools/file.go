@@ -1,7 +1,7 @@
 /*
  * @Author: your name
  * @Date: 2021-07-30 15:04:34
- * @LastEditTime: 2021-07-30 15:11:51
+ * @LastEditTime: 2021-07-30 22:14:01
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: \gtools\gtools\file.go
@@ -135,22 +135,21 @@ func (_file file) Delete(absDir string) error {
  * @return {*}
  */
 func (_file file) Write(fname string, src []string, isClear bool) bool {
-	// dirUtil.Mkdir(fname)
-	// flag := os.O_CREATE | os.O_WRONLY | os.O_TRUNC
-	// if !isClear {
-	// 	flag = os.O_CREATE | os.O_RDWR | os.O_APPEND
-	// }
-	// f, err := os.OpenFile(fname, flag, 0666)
-	// if err != nil {
-	// 	return false
-	// }
-	// defer f.Close()
+	Dir.Mkdir(fname)
+	flag := os.O_CREATE | os.O_WRONLY | os.O_TRUNC
+	if !isClear {
+		flag = os.O_CREATE | os.O_RDWR | os.O_APPEND
+	}
+	f, err := os.OpenFile(fname, flag, 0666)
+	if err != nil {
+		return false
+	}
+	defer f.Close()
 
-	// for _, v := range src {
-	// 	f.WriteString(v)
-	// 	f.WriteString("\r\n")
-	// }
-
+	for _, v := range src {
+		f.WriteString(v)
+		f.WriteString("\r\n")
+	}
 	return true
 }
 
@@ -194,10 +193,9 @@ func (_file file) Move(from, to string) error {
  * @return {*}
  */
 func (_file file) Copy(src, des string) error {
-	// if !_file.IsExist(des) {
-	// return
-	// dirUtil.Mkdir(des)
-	// }
+	if !_file.IsExist(des) {
+		Dir.Mkdir(des)
+	}
 	srcFile, err := os.Open(src)
 	if err != nil {
 		return err
