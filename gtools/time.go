@@ -17,13 +17,13 @@ type timeInterface interface {
 	GetDay(day int) string
 	GetTime() time.Time
 	GetTimeString(t time.Time, timeFormat string) string
-	GetTimeUnix(t time.Time) int64
+	TimeToUnix(t time.Time) int64
 	GetTimeMills(t time.Time) int64
-	GetTimeByInt(t1 int64) time.Time
-	GetTimeByString(timestring string, timeFormat string) (time.Time, error)
+	UnixToTime(t1 int64) time.Time
+	TimeToString(t time.Time, timeFormat string) string
 	StringToTime(timestring string, format string) (time.Time, error)
 	Compare(t1, t2 time.Time) bool
-	GetNextHourTime(s string, n int64, timeFormat string) string
+	NextHourTime(s string, n int64, timeFormat string) string
 	GetHourDiffer(start_time, end_time string, timeFormat string) float32
 	Checkhours() bool
 }
@@ -45,9 +45,9 @@ func (_time selfTime) GetDay(day int) string {
 	// GetTimeByInt
 	t := time.Now().Unix()
 	t = t + int64(day*86400)
-	nowDay := _time.GetTimeByInt(t).Format("2006-01-02")
+	nowDay := _time.UnixToTime(t).Format("2006-01-02")
 
-	timeResult, err := _time.GetTimeByString(nowDay, "2006-01-02")
+	timeResult, err := _time.StringToTime(nowDay, "2006-01-02")
 	if err != nil {
 		return nowDay
 	}
@@ -81,7 +81,7 @@ func (_time selfTime) GetTimeString(t time.Time, timeFormat string) string {
  * @param {time.Time} t
  * @return {*}
  */
-func (_time selfTime) GetTimeUnix(t time.Time) int64 {
+func (_time selfTime) TimeToUnix(t time.Time) int64 {
 	return t.Unix()
 }
 
@@ -99,7 +99,7 @@ func (_time selfTime) GetTimeMills(t time.Time) int64 {
  * @param {int64} t1
  * @return {*}
  */
-func (_time selfTime) GetTimeByInt(t1 int64) time.Time {
+func (_time selfTime) UnixToTime(t1 int64) time.Time {
 	return time.Unix(t1, 0)
 }
 
@@ -109,11 +109,11 @@ func (_time selfTime) GetTimeByInt(t1 int64) time.Time {
  * @param {string} timeFormat 字符串的格式
  * @return {*}
  */
-func (_time selfTime) GetTimeByString(timestring string, timeFormat string) (time.Time, error) {
-	if timestring == "" {
-		return time.Time{}, nil
+func (_time selfTime) TimeToString(t time.Time, timeFormat string) string {
+	if timeFormat == "" {
+		timeFormat = TimeFormat.DefaultDatetime
 	}
-	return time.ParseInLocation(timeFormat, timestring, time.Local)
+	return t.Format(timeFormat)
 }
 
 /**
@@ -146,7 +146,7 @@ func (_time selfTime) Compare(t1, t2 time.Time) bool {
  * @param {string} timeFormat
  * @return {*}
  */
-func (_time selfTime) GetNextHourTime(s string, n int64, timeFormat string) string {
+func (_time selfTime) NextHourTime(s string, n int64, timeFormat string) string {
 	t2, _ := time.ParseInLocation(timeFormat, s, time.Local)
 	t1 := t2.Add(time.Hour * time.Duration(n))
 	return _time.GetTimeString(t1, timeFormat)
@@ -164,7 +164,7 @@ func (_time selfTime) GetHourDiffer(start_time, end_time string, timeFormat stri
 	t1, _ := time.ParseInLocation(timeFormat, start_time, time.Local)
 	t2, err := time.ParseInLocation(timeFormat, end_time, time.Local)
 	if err == nil && _time.Compare(t1, t2) {
-		diff := _time.GetTimeUnix(t2) - _time.GetTimeUnix(t1)
+		diff := _time.TimeToUnix(t2) - _time.TimeToUnix(t1)
 		hour = float32(diff) / 3600
 		return hour
 	}

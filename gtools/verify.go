@@ -11,6 +11,9 @@ type verifyInterface interface {
 	Email(email string) bool
 	Mobile(mobileNum string) bool
 	Ip(ip string) bool
+	Phone(mobileNum string) bool
+	IsMail(username string) (isMail bool)
+	IDCard(cardNo string) bool
 }
 
 type verify struct{}
@@ -38,4 +41,29 @@ func (_verify verify) Ip(ip string) bool {
 		return true
 	}
 	return false
+}
+
+// IsPhone 判断是否是手机号
+func (_verify verify) Phone(mobileNum string) bool {
+	tmp := `^(13[0-9]|14[579]|15[0-3,5-9]|16[6]|17[0135678]|18[0-9]|19[89])\d{8}$`
+	reg := regexp.MustCompile(tmp)
+	return reg.MatchString(mobileNum)
+}
+
+// IsMail 判断用户是否是邮件用户
+func (_verify verify) IsMail(username string) (isMail bool) {
+	isMail = false
+	if strings.Contains(username, "@") {
+		isMail = true //是邮箱
+	}
+	return
+}
+
+// IsIDCard 判断是否是18或15位身份证
+func (_verify verify) IDCard(cardNo string) bool {
+	//18位身份证 ^(\d{17})([0-9]|X)$
+	if m, _ := regexp.MatchString(`(^\d{15}$)|(^\d{18}$)|(^\d{17}(\d|X|x)$)`, cardNo); !m {
+		return false
+	}
+	return true
 }
