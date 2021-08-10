@@ -41,6 +41,9 @@ func init() {
 
 // string转成int
 func (_turn turn) StringToInt(value string) int {
+	if value == "" {
+		return 0
+	}
 	result, err := strconv.Atoi(value)
 	if err != nil {
 		return -1
@@ -59,6 +62,9 @@ func (_turn turn) Int64ToString(value int64) string {
 }
 
 func (_turn turn) StringToInt64(value string) int64 {
+	if value == "" {
+		return 0
+	}
 	result, err := strconv.ParseInt(value, 0, 64)
 	if err != nil {
 		return -1

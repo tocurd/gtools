@@ -1,7 +1,6 @@
 package gtools
 
 import (
-	"errors"
 	"fmt"
 	"reflect"
 )
@@ -9,7 +8,7 @@ import (
 var Interface interfaceInterface
 
 type interfaceInterface interface {
-	ToString(v interface{}) (result string, err error)
+	ToString(v interface{}) (result string)
 }
 
 type selfInterface struct{}
@@ -18,7 +17,10 @@ func init() {
 	Interface = &selfInterface{}
 }
 
-func (_interface selfInterface) ToString(v interface{}) (result string, err error) {
+func (_interface selfInterface) ToString(v interface{}) (result string) {
+	if v == nil {
+		return ""
+	}
 	switch reflect.TypeOf(v).Kind() {
 	case reflect.Int64, reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32:
 		result = fmt.Sprintf("%v", v)
@@ -27,7 +29,7 @@ func (_interface selfInterface) ToString(v interface{}) (result string, err erro
 	case reflect.String:
 		result = v.(string)
 	default:
-		err = errors.New("can't transition to string")
+		return ""
 	}
-	return result, err
+	return result
 }

@@ -16,16 +16,16 @@ var TimeFormat = struct {
 type timeInterface interface {
 	GetDay(day int) string
 	GetTime() time.Time
-	GetTimeString(t time.Time, timeFormat string) string
 	TimeToUnix(t time.Time) int64
-	GetTimeMills(t time.Time) int64
+	TimeToMills(t time.Time) int64
 	UnixToTime(t1 int64) time.Time
 	TimeToString(t time.Time, timeFormat string) string
 	StringToTime(timestring string, format string) (time.Time, error)
 	Compare(t1, t2 time.Time) bool
 	NextHourTime(s string, n int64, timeFormat string) string
-	GetHourDiffer(start_time, end_time string, timeFormat string) float32
+	HourDiffer(startTime, endTime time.Time) int64
 	Checkhours() bool
+	TimeAddDate(years int, months int, days int) time.Time
 }
 
 type selfTime struct {
@@ -33,6 +33,12 @@ type selfTime struct {
 
 func init() {
 	Time = &selfTime{}
+}
+
+func (_time selfTime) TimeAddDate(years int, months int, days int) time.Time {
+	t := time.Now()                        // 获取当前时间
+	date := t.AddDate(years, months, days) // 三个参数分别是年月日，此处获取的是前一天的日期
+	return date
 }
 
 /**
@@ -64,19 +70,6 @@ func (_time selfTime) GetTime() time.Time {
 }
 
 /**
- * @description: 将时间转换成指定字符串
- * @param {time.Time} t 时间
- * @param {string} timeFormat 时间格式
- * @return {*}
- */
-func (_time selfTime) GetTimeString(t time.Time, timeFormat string) string {
-	if timeFormat == "" {
-		timeFormat = timeFormat
-	}
-	return t.Format(timeFormat)
-}
-
-/**
  * @description: 将时间转换成时间戳
  * @param {time.Time} t
  * @return {*}
@@ -90,7 +83,7 @@ func (_time selfTime) TimeToUnix(t time.Time) int64 {
  * @param {time.Time} t
  * @return {*}
  */
-func (_time selfTime) GetTimeMills(t time.Time) int64 {
+func (_time selfTime) TimeToMills(t time.Time) int64 {
 	return t.UnixNano() / 1e6
 }
 
@@ -149,25 +142,19 @@ func (_time selfTime) Compare(t1, t2 time.Time) bool {
 func (_time selfTime) NextHourTime(s string, n int64, timeFormat string) string {
 	t2, _ := time.ParseInLocation(timeFormat, s, time.Local)
 	t1 := t2.Add(time.Hour * time.Duration(n))
-	return _time.GetTimeString(t1, timeFormat)
+	return _time.TimeToString(t1, timeFormat)
 }
 
 /**
  * @description: 计算俩个时间差多少小时
- * @param {*} start_time
- * @param {string} end_time
+ * @param {*} startTime
+ * @param {string} endTime
  * @param {string} timeFormat
  * @return {*}
  */
-func (_time selfTime) GetHourDiffer(start_time, end_time string, timeFormat string) float32 {
-	var hour float32
-	t1, _ := time.ParseInLocation(timeFormat, start_time, time.Local)
-	t2, err := time.ParseInLocation(timeFormat, end_time, time.Local)
-	if err == nil && _time.Compare(t1, t2) {
-		diff := _time.TimeToUnix(t2) - _time.TimeToUnix(t1)
-		hour = float32(diff) / 3600
-		return hour
-	}
+func (_time selfTime) HourDiffer(startTime time.Time, endTime time.Time) int64 {
+	var hour int64
+	hour = ((startTime.Unix() - endTime.Unix()) / 60) / 60
 	return hour
 }
 

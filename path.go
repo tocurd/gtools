@@ -13,10 +13,10 @@ type pathInterface interface {
 	GetCurrentDirectory() string
 }
 
-type path struct{}
+type selfPath struct{}
 
 func init() {
-	Path = &path{}
+	Path = &selfPath{}
 }
 
 /**
@@ -24,7 +24,7 @@ func init() {
  * @param {*}
  * @return {*}
  */
-func (_path path) GetModelPath() string {
+func (_path selfPath) GetModelPath() string {
 	dir, _ := os.Getwd()
 	return strings.Replace(dir, "\\", "/", -1)
 }
@@ -34,7 +34,7 @@ func (_path path) GetModelPath() string {
  * @param {*}
  * @return {*}
  */
-func (_path path) GetCurrentDirectory() string {
+func (_path selfPath) GetCurrentDirectory() string {
 	dir, _ := os.Executable()
 	exPath := filepath.Dir(dir)
 	return strings.Replace(exPath, "\\", "/", -1)

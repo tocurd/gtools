@@ -166,10 +166,7 @@ func (_array array) Column(array interface{}, key string) (result []interface{},
 		if mapKeyInterface.Kind() == reflect.Invalid {
 			return nil, errors.New("key not exist")
 		}
-		mapKeyString, err := Interface.ToString(mapKeyInterface.Interface())
-		if err != nil {
-			return nil, err
-		}
+		mapKeyString := Interface.ToString(mapKeyInterface.Interface())
 
 		result = append(result, mapKeyString)
 	}

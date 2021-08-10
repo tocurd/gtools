@@ -3,6 +3,7 @@ package gtools
 import (
 	"errors"
 	"reflect"
+	"unicode"
 )
 
 var Struct structInterface
@@ -72,6 +73,7 @@ func (_selfStruct selfStruct) ToMap(data interface{}) (map[string]interface{}, e
 		typeof = typeof.Elem()
 	}
 
+	// reflect.Value.Interface: cannot return value obtained from unexported field or method
 	valueof := reflect.ValueOf(data)
 	if valueof.Kind() == reflect.Ptr {
 		valueof = valueof.Elem()
@@ -85,14 +87,14 @@ func (_selfStruct selfStruct) ToMap(data interface{}) (map[string]interface{}, e
 
 	for index := 0; index < typeof.NumField(); index++ {
 		jsonKey := typeof.Field(index).Tag.Get("json")
+		name := typeof.Field(index).Name
 
-		fieldName := ""
-		if jsonKey != "" {
-			fieldName = jsonKey
-		} else {
-			fieldName = typeof.Field(index).Name
+		fieldName, _ := Quick.If(jsonKey != "", jsonKey, name).(string)
+		if !unicode.IsUpper(rune(fieldName[0])) {
+			continue
 		}
-		mapKeyInterface := valueof.FieldByName(typeof.Field(index).Name)
+
+		mapKeyInterface := valueof.FieldByName(name)
 		if mapKeyInterface.Kind() == reflect.Invalid {
 			return nil, errors.New("key not exist")
 		}

@@ -83,7 +83,7 @@ func (_cmd cmd) RunCMD(name string, cmd ...string) (string, error) {
 			}
 		}
 
-		text := turnUtil.ConvertToString(outputBuff.String(), "gbk", "utf8")
+		text := Turn.ConvertToString(outputBuff.String(), "gbk", "utf8")
 		return strings.Trim(text, "\r\n"), err
 	} else {
 		outputbuff := bufio.NewReader(stdout)
@@ -92,7 +92,7 @@ func (_cmd cmd) RunCMD(name string, cmd ...string) (string, error) {
 			return "", err
 		}
 
-		text := turnUtil.ConvertToString(string(output), "gbk", "utf8")
+		text := Turn.ConvertToString(string(output), "gbk", "utf8")
 		return strings.Trim(text, "\r\n"), nil
 	}
 }
