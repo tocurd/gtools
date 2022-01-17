@@ -1,7 +1,6 @@
 package gtools
 
 import (
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"strings"
@@ -11,7 +10,7 @@ var Network networkInterface
 
 type networkInterface interface {
 	Get(string, map[string]string) (string, error)
-	Post(url string, data map[string]string, headers map[string]string) (string, error)
+	Post(url string, data string, headers map[string]string) (string, error)
 }
 
 type network struct{}
@@ -60,13 +59,8 @@ func (network) Get(url string, headers map[string]string) (string, error) {
  * @param {map[string]string} data
  * @return {*}
  */
-func (network) Post(url string, data map[string]string, headers map[string]string) (string, error) {
+func (network) Post(url string, postData string, headers map[string]string) (string, error) {
 	client := &http.Client{}
-
-	postData := ""
-	for key := range data {
-		postData += fmt.Sprintf("&%s=%s", key, data[key])
-	}
 
 	request, err := http.NewRequest("POST", url, strings.NewReader(postData))
 	if err != nil {

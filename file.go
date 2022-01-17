@@ -1,10 +1,10 @@
 /*
  * @Author: your name
  * @Date: 2021-07-30 15:04:34
- * @LastEditTime: 2021-07-30 22:14:01
- * @LastEditors: Please set LastEditors
+ * @LastEditTime: 2022-01-14 22:05:50
+ * @LastEditors: vscode
  * @Description: In User Settings Edit
- * @FilePath: \gtools\gtools\file.go
+ * @FilePath: \serveri:\project\gtools\file.go
  */
 package gtools
 
@@ -13,6 +13,7 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 
 	"errors"
 )
@@ -23,11 +24,15 @@ type fileInterface interface {
 	GetPathDirs(string) []string
 	GetPathFiles(string) []string
 	ReadLine(string, int) (string, error)
+	Read(string) ([]string, error)
+	ReadAll(string) (string, error)
+
 	GetFileLineCount(string) (int, error)
 	IsExist(string) bool
 	Delete(string) error
-	Write(string, []string, bool) bool
-	Read(string) []string
+	Remove(string) error
+	Write(string, string, bool) bool
+	Create(string, []byte, bool) error
 	Move(string, string) error
 	Copy(string, string) error
 }
@@ -40,6 +45,7 @@ func init() {
 
 // GetPathDirs 获取目录所有文件夹
 func (_file file) GetPathDirs(absDir string) (re []string) {
+	absDir = Path.ParsePath(absDir)
 	if _file.IsExist(absDir) {
 		files, _ := ioutil.ReadDir(absDir)
 		for _, f := range files {
@@ -53,6 +59,7 @@ func (_file file) GetPathDirs(absDir string) (re []string) {
 
 // GetPathFiles 获取目录所有文件
 func (_file file) GetPathFiles(absDir string) (re []string) {
+	absDir = Path.ParsePath(absDir)
 	if _file.IsExist(absDir) {
 		files, _ := ioutil.ReadDir(absDir)
 		for _, f := range files {
@@ -70,6 +77,7 @@ func (_file file) GetPathFiles(absDir string) (re []string) {
  * @return {*}
  */
 func (_file file) ReadLine(path string, lineNumber int) (string, error) {
+	path = Path.ParsePath(path)
 	file, _ := os.Open(path)
 	fileScanner := bufio.NewScanner(file)
 	lineCount := 1
@@ -89,6 +97,7 @@ func (_file file) ReadLine(path string, lineNumber int) (string, error) {
  * @return {*}
  */
 func (_file file) GetFileLineCount(path string) (int, error) {
+	path = Path.ParsePath(path)
 	file, err := os.Open(path)
 	if err != nil {
 		return 0, err
@@ -112,9 +121,10 @@ func (_file file) GetFileLineCount(path string) (int, error) {
  * @param {string} filename
  * @return {*}
  */
-func (_file file) IsExist(filename string) bool {
+func (_file file) IsExist(path string) bool {
+	path = Path.ParsePath(path)
 	var exist = true
-	if _, err := os.Stat(filename); os.IsNotExist(err) {
+	if _, err := os.Stat(path); os.IsNotExist(err) {
 		exist = false
 	}
 	return exist
@@ -126,7 +136,17 @@ func (_file file) IsExist(filename string) bool {
  * @return {*}
  */
 func (_file file) Delete(absDir string) error {
+	absDir = Path.ParsePath(absDir)
 	return os.RemoveAll(absDir)
+}
+
+/**
+ * @description: 删除文件或文件夹
+ * @param {*}
+ * @return {*}
+ */
+func (_file file) Remove(absDir string) error {
+	return _file.Delete(absDir)
 }
 
 /**
@@ -134,23 +154,45 @@ func (_file file) Delete(absDir string) error {
  * @param {*}
  * @return {*}
  */
-func (_file file) Write(fname string, src []string, isClear bool) bool {
-	Dir.Mkdir(fname)
+func (_file file) Write(path string, src string, isClear bool) bool {
+	path = Path.ParsePath(path)
+	Dir.Mkdir(filepath.Dir(path))
 	flag := os.O_CREATE | os.O_WRONLY | os.O_TRUNC
 	if !isClear {
 		flag = os.O_CREATE | os.O_RDWR | os.O_APPEND
 	}
-	f, err := os.OpenFile(fname, flag, 0666)
+
+	f, err := os.OpenFile(path, flag, 0666)
 	if err != nil {
 		return false
 	}
 	defer f.Close()
 
-	for _, v := range src {
-		f.WriteString(v)
-		f.WriteString("\r\n")
-	}
+	f.WriteString(src)
 	return true
+}
+
+/**
+ * @description: 写入文件
+ * @param {*}
+ * @return {*}
+ */
+func (_file file) Create(path string, src []byte, isClear bool) error {
+	path = Path.ParsePath(path)
+	Dir.Mkdir(filepath.Dir(path))
+	flag := os.O_CREATE | os.O_WRONLY | os.O_TRUNC
+	if !isClear {
+		flag = os.O_CREATE | os.O_RDWR | os.O_APPEND
+	}
+
+	f, err := os.OpenFile(path, flag, 0666)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	f.Write(src)
+	return nil
 }
 
 /**
@@ -158,10 +200,39 @@ func (_file file) Write(fname string, src []string, isClear bool) bool {
  * @param {string} fname
  * @return {*}
  */
-func (_file file) Read(fname string) (src []string) {
-	f, err := os.OpenFile(fname, os.O_RDONLY, 0666)
+func (_file file) ReadAll(path string) (src string, err error) {
+	path = Path.ParsePath(path)
+	f, err := os.OpenFile(path, os.O_RDONLY, 0666)
 	if err != nil {
-		return []string{}
+		return "", err
+	}
+	defer f.Close()
+
+	src = ""
+	rd := bufio.NewReader(f)
+	for {
+		line, _, err := rd.ReadLine()
+		if err != nil || io.EOF == err {
+			break
+		}
+		src += string(line) + "\r\n"
+	}
+
+	src = src[0 : len(src)-2]
+
+	return src, nil
+}
+
+/**
+ * @description: 读取文件内容
+ * @param {string} fname
+ * @return {*}
+ */
+func (_file file) Read(path string) (src []string, err error) {
+	path = Path.ParsePath(path)
+	f, err := os.OpenFile(path, os.O_RDONLY, 0666)
+	if err != nil {
+		return []string{}, err
 	}
 	defer f.Close()
 
@@ -174,7 +245,7 @@ func (_file file) Read(fname string) (src []string) {
 		src = append(src, string(line))
 	}
 
-	return src
+	return src, nil
 }
 
 /**
@@ -183,6 +254,8 @@ func (_file file) Read(fname string) (src []string) {
  * @return {*}
  */
 func (_file file) Move(from, to string) error {
+	from = Path.ParsePath(from)
+	to = Path.ParsePath(to)
 	return os.Rename(from, to)
 }
 
@@ -193,6 +266,8 @@ func (_file file) Move(from, to string) error {
  * @return {*}
  */
 func (_file file) Copy(src, des string) error {
+	src = Path.ParsePath(src)
+	des = Path.ParsePath(des)
 	if !_file.IsExist(des) {
 		Dir.Mkdir(des)
 	}

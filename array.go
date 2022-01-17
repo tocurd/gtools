@@ -153,7 +153,7 @@ func (_array array) Column(array interface{}, key string) (result []interface{},
 		return nil, errors.New("array type not slice")
 	}
 	if v.Len() == 0 {
-		return nil, errors.New("array len is zero")
+		return result, nil
 	}
 
 	for i := 0; i < v.Len(); i++ {

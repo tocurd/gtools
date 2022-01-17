@@ -14,10 +14,10 @@ import (
 type Log struct {
 	LogDir     string
 	Filename   string
-	MaxSize    int
-	MaxBackups int
-	MaxAge     int
-	Compress   bool
+	MaxSize    int  // 单个文件最大尺寸，默认单位M
+	MaxBackups int  // 备份日志的数量
+	MaxAge     int  // 日志最大时间
+	Compress   bool // 是否压缩
 	TimeLayout string
 	Caller     int
 	LogLevel   logrus.Level
@@ -50,14 +50,14 @@ func (formatter formatter) Format(entry *logrus.Entry) ([]byte, error) {
 
 	levelColor := map[logrus.Level]string{
 		0: "eeeeee", // Panic
-		1: "eeeeee", // Fatal
+		1: "ff0000", // Fatal
 		2: "f92672", // Error
 		3: "yellow", // Warn
 		4: "eeeeee", // Info
 		5: "2db7f5", // Debug
 		6: "eeeeee", // Trace
 	}
-	color.Printf("<fg=%s>[%s] %s:%d [%s]</> %s\n", levelColor[entry.Level], timestamp, caller.File, caller.Line, entry.Level, entry.Message)
+	color.Printf("<fg=%s>[%s] %s:%d [%s] %s</> \n", levelColor[entry.Level], timestamp, caller.File, caller.Line, entry.Level, entry.Message)
 
 	b.WriteString(newLog)
 	return b.Bytes(), nil
